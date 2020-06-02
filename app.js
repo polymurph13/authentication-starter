@@ -21,6 +21,22 @@ const authRouter = require('./routes/auth.routes');
 
 const app = express();
 
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
+ 
+app.use(session({
+    secret: 'auth-practice-secret',
+    saveUninitialized: false,
+    cookie: {
+      maxAge: (1000 * 60 * 60 * 24) // ms
+    },
+    store: new MongoStore({
+      url: 'mongodb://localhost/basicAuth',
+      ttl: (60 * 60 * 24), //seconds
+      autoRemove: 'disabled'
+    })
+}));
+
 // Express View engine setup
 
 app.set('views', path.join(__dirname, 'views'));

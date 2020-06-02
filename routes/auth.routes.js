@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const UserModel = require('../models/User.model');
-let globalUserData = {};
 
 /* GET home page */
 router.get('/signup', (req, res) => {
@@ -43,7 +42,7 @@ router.post('/signup', (req, res) => {
         .then(passwordHash => {
           UserModel.create({ username, email, passwordHash })
             .then(() => {
-              globalUserData = {username, email, passwordHash}
+              req.session.loggedInUser = {username, email, passwordHash}
               res.redirect('/profile');
             })
             .catch(err => {
@@ -109,7 +108,7 @@ router.post('/signin', (req, res) => {
     bcrypt.compare(password, userData.passwordHash)
     .then((matches) => {
       if(matches) {
-        globalUserData = userData;
+        req.session.loggedInUser = userData;
         res.redirect('profile');
       } else {
         res.status(500).render('auth/signin.hbs', {
@@ -134,7 +133,7 @@ router.post('/signin', (req, res) => {
 });
 
 router.get('/profile', (req, res) => {
-  res.render('users/profile.hbs', {globalUserData});
+  res.render('users/profile.hbs', {userData: req.session.loggedInUser});
 });
 
 module.exports = router;
