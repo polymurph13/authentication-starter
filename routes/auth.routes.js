@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const UserModel = require('../models/User.model');
+let globalUserData = {};
 
 /* GET home page */
 router.get('/signup', (req, res) => {
@@ -42,6 +43,7 @@ router.post('/signup', (req, res) => {
         .then(passwordHash => {
           UserModel.create({ username, email, passwordHash })
             .then(() => {
+              globalUserData = {username, email, passwordHash}
               res.redirect('/profile');
             })
             .catch(err => {
@@ -107,7 +109,8 @@ router.post('/signin', (req, res) => {
     bcrypt.compare(password, userData.passwordHash)
     .then((matches) => {
       if(matches) {
-        res.redirect('/profile');
+        globalUserData = userData;
+        res.redirect('profile');
       } else {
         res.status(500).render('auth/signin.hbs', {
           errorMessage: 'Incorrect Password'
@@ -116,14 +119,14 @@ router.post('/signin', (req, res) => {
     })
     .catch((res) => {
       res.status(500).render('auth/signin.hbs', {
-        errorMessage: 'Something went wrong!',
+        errorMessage: 'Something went wrong!'
       });
       return;
     });
   })
   .catch(() => {
     res.status(500).render('auth/signin.hbs', {
-      errorMessage: 'Something went wrong!',
+      errorMessage: 'Something went wrong!'
     });
     return;
   });
@@ -131,7 +134,7 @@ router.post('/signin', (req, res) => {
 });
 
 router.get('/profile', (req, res) => {
-  res.render('users/profile.hbs');
+  res.render('users/profile.hbs', {globalUserData});
 });
 
 module.exports = router;
